@@ -15,13 +15,17 @@ export const fetchFromAPI = async <T>(
 ): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`;
   
-  const response = await fetch(url, {
+  // Include credentials to handle cookies for session-based auth
+  const fetchOptions: RequestInit = {
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
     ...options,
-  });
+  };
+
+  const response = await fetch(url, fetchOptions);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Unknown error' }));
@@ -35,21 +39,35 @@ export const fetchFromAPI = async <T>(
  * API functions for specific endpoints
  */
 export const api = {
-  // Get dashboard statistics
+  // Authentication
+  auth: {
+    // Check current authentication status
+    checkAuth: () => fetchFromAPI<{ authenticated: boolean; user?: any }>('/api/auth/status'),
+    
+    // Login - this will be handled by the backend with redirects
+    login: () => {
+      window.location.href = `${API_BASE_URL}/auth/login`;
+      return Promise.resolve({ redirected: true });
+    },
+    
+    // Signup - this will be handled by the backend with redirects
+    signup: () => {
+      window.location.href = `${API_BASE_URL}/auth/signup`;
+      return Promise.resolve({ redirected: true });
+    },
+    
+    // Logout - this will clear the session on the backend
+    logout: () => fetchFromAPI<{ success: boolean }>('/api/auth/logout', { method: 'POST' }),
+  },
+  
+  // Data endpoints
   getStats: () => fetchFromAPI<any>('/api/stats'),
-  
-  // Get available food items
   getFoodItems: () => fetchFromAPI<any>('/api/food-items'),
-  
-  // Submit a new food donation
   submitDonation: (data: any) => fetchFromAPI<any>('/api/donations', {
     method: 'POST',
     body: JSON.stringify(data),
   }),
-  
-  // Get list of organizations
   getOrganizations: () => fetchFromAPI<any>('/api/organizations'),
-  
-  // Generic data endpoint (for testing)
   getData: () => fetchFromAPI<any>('/api/data'),
 };
+

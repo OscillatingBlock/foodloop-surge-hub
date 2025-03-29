@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Menu, X, Leaf, LogIn, UserPlus } from "lucide-react";
+import { Menu, X, Leaf, LogIn, UserPlus, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/api/client";
 import { toast } from "@/hooks/use-toast";
@@ -8,6 +8,32 @@ import { toast } from "@/hooks/use-toast";
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        setIsLoading(true);
+        const response = await api.auth.checkAuth();
+        setIsAuthenticated(response.authenticated);
+        if (response.user) {
+          setUser(response.user);
+        }
+      } catch (error) {
+        console.error("Failed to check authentication status:", error);
+        // Assume not authenticated on error
+        setIsAuthenticated(false);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,8 +49,7 @@ const Navbar: React.FC = () => {
   }, []);
 
   const handleLogin = () => {
-    // Redirect to your backend login route
-    window.location.href = "http://localhost:5000/auth/login";
+    api.auth.login();
     toast({
       title: "Redirecting to login",
       description: "You are being redirected to the login page",
@@ -32,12 +57,30 @@ const Navbar: React.FC = () => {
   };
 
   const handleSignup = () => {
-    // Redirect to your backend signup route
-    window.location.href = "http://localhost:5000/auth/signup";
+    api.auth.signup();
     toast({
       title: "Redirecting to signup",
       description: "You are being redirected to the signup page",
     });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await api.auth.logout();
+      // Let the backend handle the session destruction
+      // Reload the page to reflect the logged out state
+      window.location.href = "/";
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -87,21 +130,42 @@ const Navbar: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button 
-              variant="outline" 
-              className="border-leaf text-leaf hover:bg-leaf hover:text-white flex items-center gap-2"
-              onClick={handleLogin}
-            >
-              <LogIn className="h-4 w-4" />
-              Login
-            </Button>
-            <Button 
-              className="bg-leaf hover:bg-leaf-dark text-white flex items-center gap-2"
-              onClick={handleSignup}
-            >
-              <UserPlus className="h-4 w-4" />
-              Sign Up
-            </Button>
+            {isLoading ? (
+              <div className="animate-pulse h-10 w-32 bg-gray-200 rounded-md"></div>
+            ) : isAuthenticated ? (
+              <>
+                <div className="flex items-center text-sm text-gray-700">
+                  <User className="h-4 w-4 mr-2" />
+                  {user?.name || 'User'}
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white flex items-center gap-2"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="border-leaf text-leaf hover:bg-leaf hover:text-white flex items-center gap-2"
+                  onClick={handleLogin}
+                >
+                  <LogIn className="h-4 w-4" />
+                  Login
+                </Button>
+                <Button 
+                  className="bg-leaf hover:bg-leaf-dark text-white flex items-center gap-2"
+                  onClick={handleSignup}
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -150,21 +214,42 @@ const Navbar: React.FC = () => {
                 Contact
               </a>
               <div className="flex flex-col space-y-2 pt-2">
-                <Button 
-                  variant="outline" 
-                  className="border-leaf text-leaf hover:bg-leaf hover:text-white w-full flex items-center justify-center gap-2"
-                  onClick={handleLogin}
-                >
-                  <LogIn className="h-4 w-4" />
-                  Login
-                </Button>
-                <Button 
-                  className="bg-leaf hover:bg-leaf-dark text-white w-full flex items-center justify-center gap-2"
-                  onClick={handleSignup}
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Sign Up
-                </Button>
+                {isLoading ? (
+                  <div className="animate-pulse h-10 w-full bg-gray-200 rounded-md"></div>
+                ) : isAuthenticated ? (
+                  <>
+                    <div className="flex items-center text-sm text-gray-700 py-2 px-4">
+                      <User className="h-4 w-4 mr-2" />
+                      {user?.name || 'User'}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white w-full flex items-center justify-center gap-2"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      className="border-leaf text-leaf hover:bg-leaf hover:text-white w-full flex items-center justify-center gap-2"
+                      onClick={handleLogin}
+                    >
+                      <LogIn className="h-4 w-4" />
+                      Login
+                    </Button>
+                    <Button 
+                      className="bg-leaf hover:bg-leaf-dark text-white w-full flex items-center justify-center gap-2"
+                      onClick={handleSignup}
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      Sign Up
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -175,3 +260,4 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
+
