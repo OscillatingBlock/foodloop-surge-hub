@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { Menu, X, Leaf, LogIn, UserPlus, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { api } from "@/api/client";
 import { toast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,6 +11,7 @@ const Navbar: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Check authentication status on mount
   useEffect(() => {
@@ -49,27 +50,20 @@ const Navbar: React.FC = () => {
   }, []);
 
   const handleLogin = () => {
-    api.auth.login();
-    toast({
-      title: "Redirecting to login",
-      description: "You are being redirected to the login page",
-    });
+    navigate("/login");
   };
 
   const handleSignup = () => {
-    api.auth.signup();
-    toast({
-      title: "Redirecting to signup",
-      description: "You are being redirected to the signup page",
-    });
+    navigate("/signup");
   };
 
   const handleLogout = async () => {
     try {
       await api.auth.logout();
       // Let the backend handle the session destruction
-      // Reload the page to reflect the logged out state
-      window.location.href = "/";
+      setIsAuthenticated(false);
+      setUser(null);
+      navigate("/");
       toast({
         title: "Logged out",
         description: "You have been successfully logged out",
@@ -260,4 +254,3 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
-

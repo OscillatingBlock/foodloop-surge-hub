@@ -43,15 +43,28 @@ export const api = {
     // Check current authentication status
     checkAuth: () => fetchFromAPI<{ authenticated: boolean; user?: any }>('/api/auth/status'),
     
-    // Login - updated endpoint
-    login: () => {
-      window.location.href = `${API_BASE_URL}/api/login`;
+    // Login with credentials
+    login: (credentials: { email: string; password: string }) => 
+      fetchFromAPI<{ message: string }>('/api/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials)
+      }),
+    
+    // Signup with user data
+    signup: (userData: { name: string; email: string; password: string }) => 
+      fetchFromAPI<{ message: string }>('/api/signup', {
+        method: 'POST',
+        body: JSON.stringify(userData)
+      }),
+    
+    // Redirect to login/signup pages (kept for backwards compatibility)
+    redirectToLogin: () => {
+      window.location.href = '/login';
       return Promise.resolve({ redirected: true });
     },
     
-    // Signup - updated endpoint
-    signup: () => {
-      window.location.href = `${API_BASE_URL}/api/signup`;
+    redirectToSignup: () => {
+      window.location.href = '/signup';
       return Promise.resolve({ redirected: true });
     },
     
