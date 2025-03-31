@@ -46,6 +46,18 @@ export const fetchFromAPI = async <T>(
   }
 };
 
+// Define proper types for our API functions
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface SignupData {
+  username: string;
+  email: string;
+  password: string;
+}
+
 /**
  * API functions for specific endpoints
  */
@@ -56,14 +68,14 @@ export const api = {
     checkAuth: () => fetchFromAPI<{ authenticated: boolean; user?: any }>('/api/auth/status'),
     
     // Login with credentials
-    login: (credentials: { email: string; password: string }) => 
+    login: (credentials: LoginCredentials) => 
       fetchFromAPI<{ message: string }>('/api/login', {
         method: 'POST',
         body: JSON.stringify(credentials)
       }),
     
     // Signup with user data
-    signup: (userData: { username: string; email: string; password: string }) => 
+    signup: (userData: SignupData) => 
       fetchFromAPI<{ message: string }>('/api/signup', {
         method: 'POST',
         body: JSON.stringify(userData)

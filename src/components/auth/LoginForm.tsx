@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Leaf } from "lucide-react";
-import { api } from "@/api/client";
+import { api, LoginCredentials } from "@/api/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
@@ -32,7 +32,13 @@ const LoginForm: React.FC = () => {
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
-      const result = await api.auth.login(values);
+      // Convert form values to the required type for the API
+      const credentials: LoginCredentials = {
+        email: values.email,
+        password: values.password,
+      };
+      
+      const result = await api.auth.login(credentials);
       toast({
         title: "Login successful",
         description: result.message || "You have been logged in successfully",
@@ -107,6 +113,13 @@ const LoginForm: React.FC = () => {
           </Button>
         </form>
       </Form>
+
+      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
+        <p className="text-sm mb-2 font-medium">Important:</p>
+        <p className="text-sm">
+          Make sure your Flask backend server is running at <code className="bg-amber-100 px-1 py-0.5 rounded">http://localhost:5000</code> or update the API_BASE_URL in the API client if your server is running elsewhere.
+        </p>
+      </div>
 
       <div className="text-center mt-4">
         <p className="text-gray-600">

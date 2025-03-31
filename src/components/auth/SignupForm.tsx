@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Leaf } from "lucide-react";
-import { api } from "@/api/client";
+import { api, SignupData } from "@/api/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
@@ -40,17 +40,14 @@ const SignupForm: React.FC = () => {
   const onSubmit = async (values: SignupFormValues) => {
     try {
       // Remove confirmPassword as it's not needed in the API call
-      const { confirmPassword, ...userData } = values;
+      const { confirmPassword, ...formData } = values;
       
-      // Ensure all required fields are present
-      if (!userData.username || !userData.email || !userData.password) {
-        toast({
-          title: "Missing information",
-          description: "Please fill out all fields",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Create a properly typed object for the API call
+      const userData: SignupData = {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      };
       
       const result = await api.auth.signup(userData);
       toast({
