@@ -1,4 +1,3 @@
-
 /**
  * API client for connecting to the Flask backend
  */
@@ -44,15 +43,15 @@ export const api = {
     // Check current authentication status
     checkAuth: () => fetchFromAPI<{ authenticated: boolean; user?: any }>('/api/auth/status'),
     
-    // Login - this will be handled by the backend with redirects
+    // Login - updated endpoint
     login: () => {
-      window.location.href = `${API_BASE_URL}/auth/login`;
+      window.location.href = `${API_BASE_URL}/api/login`;
       return Promise.resolve({ redirected: true });
     },
     
-    // Signup - this will be handled by the backend with redirects
+    // Signup - updated endpoint
     signup: () => {
-      window.location.href = `${API_BASE_URL}/auth/signup`;
+      window.location.href = `${API_BASE_URL}/api/signup`;
       return Promise.resolve({ redirected: true });
     },
     
@@ -70,4 +69,3 @@ export const api = {
   getOrganizations: () => fetchFromAPI<any>('/api/organizations'),
   getData: () => fetchFromAPI<any>('/api/data'),
 };
-
