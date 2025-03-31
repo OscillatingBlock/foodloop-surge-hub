@@ -1,3 +1,4 @@
+
 /**
  * API client for connecting to the Flask backend
  */
@@ -28,7 +29,7 @@ export const fetchFromAPI = async <T>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-    throw new Error(error.message || `API error: ${response.status}`);
+    throw new Error(error.message || error.error || `API error: ${response.status}`);
   }
 
   return await response.json();
@@ -51,7 +52,7 @@ export const api = {
       }),
     
     // Signup with user data
-    signup: (userData: { name: string; email: string; password: string }) => 
+    signup: (userData: { username: string; email: string; password: string }) => 
       fetchFromAPI<{ message: string }>('/api/signup', {
         method: 'POST',
         body: JSON.stringify(userData)

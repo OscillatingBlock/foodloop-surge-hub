@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
 const signupSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  username: z.string().min(2, { message: "Username must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters" }),
@@ -28,7 +28,7 @@ const SignupForm: React.FC = () => {
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      name: "",
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -72,14 +72,14 @@ const SignupForm: React.FC = () => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
-            name="name"
+            name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>Username</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="John Doe"
-                    autoComplete="name"
+                    placeholder="johndoe"
+                    autoComplete="username"
                     {...field}
                   />
                 </FormControl>
