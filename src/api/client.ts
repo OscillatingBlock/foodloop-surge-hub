@@ -25,14 +25,25 @@ export const fetchFromAPI = async <T>(
     ...options,
   };
 
-  const response = await fetch(url, fetchOptions);
+  try {
+    const response = await fetch(url, fetchOptions);
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-    throw new Error(error.message || error.error || `API error: ${response.status}`);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+      throw new Error(error.message || error.error || `API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    // Handle network errors specifically
+    if (error instanceof TypeError && error.message.includes('NetworkError')) {
+      throw new Error(
+        `Cannot connect to the backend server at ${API_BASE_URL}. ` +
+        'Please make sure your backend server is running and accessible.'
+      );
+    }
+    throw error;
   }
-
-  return await response.json();
 };
 
 /**

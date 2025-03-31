@@ -42,6 +42,16 @@ const SignupForm: React.FC = () => {
       // Remove confirmPassword as it's not needed in the API call
       const { confirmPassword, ...userData } = values;
       
+      // Ensure all required fields are present
+      if (!userData.username || !userData.email || !userData.password) {
+        toast({
+          title: "Missing information",
+          description: "Please fill out all fields",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const result = await api.auth.signup(userData);
       toast({
         title: "Signup successful",
@@ -154,6 +164,13 @@ const SignupForm: React.FC = () => {
           </Button>
         </form>
       </Form>
+
+      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
+        <p className="text-sm mb-2 font-medium">Important:</p>
+        <p className="text-sm">
+          Make sure your Flask backend server is running at <code className="bg-amber-100 px-1 py-0.5 rounded">http://localhost:5000</code> or update the API_BASE_URL in the API client if your server is running elsewhere.
+        </p>
+      </div>
 
       <div className="text-center mt-4">
         <p className="text-gray-600">
