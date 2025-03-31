@@ -59,9 +59,18 @@ const SignupForm: React.FC = () => {
       navigate("/login");
     } catch (error) {
       console.error("Signup error:", error);
+      
+      // More detailed error message
+      let errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      
+      // Add more context if it's a CORS-related error
+      if (errorMessage.includes('CORS')) {
+        errorMessage += "\n\nPlease add the following to your Flask app:\n\nfrom flask_cors import CORS\nCORS(app, supports_credentials=True, origins=[\"*\"])";
+      }
+      
       toast({
         title: "Signup failed",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     }

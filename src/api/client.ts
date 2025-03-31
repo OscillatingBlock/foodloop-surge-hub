@@ -35,11 +35,18 @@ export const fetchFromAPI = async <T>(
 
     return await response.json();
   } catch (error) {
-    // Handle network errors specifically
-    if (error instanceof TypeError && error.message.includes('NetworkError')) {
+    // Check specifically for CORS-related errors
+    if (error instanceof TypeError && 
+        (error.message.includes('NetworkError') || 
+         error.message.includes('Failed to fetch') || 
+         error.message.includes('Network request failed'))) {
+      
       throw new Error(
         `Cannot connect to the backend server at ${API_BASE_URL}. ` +
-        'Please make sure your backend server is running and accessible.'
+        'This may be due to CORS restrictions. Please make sure your backend server is running, ' +
+        'accessible, and has CORS enabled for this origin. ' +
+        'Add these headers to your Flask app: ' +
+        'CORS(app, supports_credentials=True, origins=["https://your-lovable-project.lovableproject.com"])'
       );
     }
     throw error;
