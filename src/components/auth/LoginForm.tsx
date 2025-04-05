@@ -54,8 +54,16 @@ const LoginForm: React.FC = () => {
         description: result.message || "You have been logged in successfully",
       });
       
-      // Redirect to homepage after successful login
-      navigate("/");
+      // Get user data to determine their role
+      const authStatus = await api.auth.checkAuth();
+      
+      if (authStatus.authenticated && authStatus.user) {
+        // Redirect based on user role
+        navigate("/dashboard");
+      } else {
+        // If for some reason we can't get the user data, just go to the dashboard
+        navigate("/dashboard");
+      }
     } catch (error) {
       console.error("Login error:", error);
       
