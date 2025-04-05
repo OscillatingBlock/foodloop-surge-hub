@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -62,11 +61,6 @@ const SignupForm: React.FC = () => {
       
       // More detailed error message
       let errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      
-      // Add more context if it's a CORS-related error
-      if (errorMessage.includes('CORS')) {
-        errorMessage += "\n\nPlease add the following to your Flask app:\n\nfrom flask_cors import CORS\nCORS(app, supports_credentials=True, origins=[\"*\"])";
-      }
       
       toast({
         title: "Signup failed",

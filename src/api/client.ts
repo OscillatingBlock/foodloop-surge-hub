@@ -67,6 +67,15 @@ export interface SignupData {
 }
 
 /**
+ * Helper function to convert an object to URL parameters
+ */
+const objectToUrlParams = (data: Record<string, any>): string => {
+  return Object.entries(data)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&');
+};
+
+/**
  * API functions for specific endpoints
  */
 export const api = {
@@ -83,11 +92,13 @@ export const api = {
       }),
     
     // Signup with user data
-    signup: (userData: SignupData) => 
-      fetchFromAPI<{ message: string }>('/api/signup', {
-        method: 'GET',  // Changed to GET to match your Flask backend
-        body: JSON.stringify(userData)
-      }),
+    signup: (userData: SignupData) => {
+      // Since GET requests can't have a body, we convert userData to query parameters
+      const params = objectToUrlParams(userData);
+      return fetchFromAPI<{ message: string }>(`/api/signup?${params}`, {
+        method: 'GET'
+      });
+    },
     
     // Redirect to login/signup pages (kept for backwards compatibility)
     redirectToLogin: () => {
