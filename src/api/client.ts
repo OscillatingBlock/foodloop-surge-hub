@@ -92,13 +92,11 @@ export const api = {
       }),
     
     // Signup with user data
-    signup: (userData: SignupData) => {
-      // Since GET requests can't have a body, we convert userData to query parameters
-      const params = objectToUrlParams(userData);
-      return fetchFromAPI<{ message: string }>(`/api/signup?${params}`, {
-        method: 'GET'
-      });
-    },
+    signup: (userData: SignupData) => 
+      fetchFromAPI<{ message: string }>('/api/signup', {
+        method: 'POST',
+        body: JSON.stringify(userData)
+      }),
     
     // Redirect to login/signup pages (kept for backwards compatibility)
     redirectToLogin: () => {
