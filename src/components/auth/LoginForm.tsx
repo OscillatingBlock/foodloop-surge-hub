@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  remember: z.boolean().optional().default(false),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -25,6 +26,7 @@ const LoginForm: React.FC = () => {
     defaultValues: {
       email: "",
       password: "",
+      remember: false,
     },
   });
 
@@ -36,9 +38,17 @@ const LoginForm: React.FC = () => {
       const credentials: LoginCredentials = {
         email: values.email,
         password: values.password,
+        remember: values.remember,
       };
       
       const result = await api.auth.login(credentials);
+      
+      // Handle the JWT token if returned
+      if (result.token) {
+        // Store token in localStorage for future API requests
+        localStorage.setItem('authToken', result.token);
+      }
+      
       toast({
         title: "Login successful",
         description: result.message || "You have been logged in successfully",
@@ -48,9 +58,13 @@ const LoginForm: React.FC = () => {
       navigate("/");
     } catch (error) {
       console.error("Login error:", error);
+      
+      // More detailed error message
+      let errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      
       toast({
         title: "Login failed",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     }

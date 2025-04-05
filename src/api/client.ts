@@ -45,8 +45,8 @@ export const fetchFromAPI = async <T>(
         `Cannot connect to the backend server at ${API_BASE_URL}. ` +
         'This may be due to CORS restrictions. Please make sure your backend server is running, ' +
         'accessible, and has CORS enabled for this origin. ' +
-        'Add these headers to your Flask app: ' +
-        'CORS(app, supports_credentials=True, origins=["https://your-lovable-project.lovableproject.com"])'
+        'Make sure your Flask app has: ' +
+        'CORS(app, supports_credentials=True, origins=["*"])'
       );
     }
     throw error;
@@ -57,6 +57,7 @@ export const fetchFromAPI = async <T>(
 export interface LoginCredentials {
   email: string;
   password: string;
+  remember?: boolean;
 }
 
 export interface SignupData {
@@ -76,7 +77,7 @@ export const api = {
     
     // Login with credentials
     login: (credentials: LoginCredentials) => 
-      fetchFromAPI<{ message: string }>('/api/login', {
+      fetchFromAPI<{ message: string; token?: string }>('/api/login', {
         method: 'POST',
         body: JSON.stringify(credentials)
       }),
@@ -84,7 +85,7 @@ export const api = {
     // Signup with user data
     signup: (userData: SignupData) => 
       fetchFromAPI<{ message: string }>('/api/signup', {
-        method: 'POST',
+        method: 'GET',  // Changed to GET to match your Flask backend
         body: JSON.stringify(userData)
       }),
     
@@ -100,7 +101,7 @@ export const api = {
     },
     
     // Logout - this will clear the session on the backend
-    logout: () => fetchFromAPI<{ success: boolean }>('/api/auth/logout', { method: 'POST' }),
+    logout: () => fetchFromAPI<{ success: boolean }>('/api/logout', { method: 'POST' }),
   },
   
   // Data endpoints
