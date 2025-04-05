@@ -64,7 +64,10 @@ export interface SignupData {
   username: string;
   email: string;
   password: string;
+  role: string; // Added role field
 }
+
+export type UserRole = 'Farmer' | 'NGO' | 'Retailer';
 
 /**
  * Helper function to convert an object to URL parameters
@@ -122,4 +125,20 @@ export const api = {
   }),
   getOrganizations: () => fetchFromAPI<any>('/api/organizations'),
   getData: () => fetchFromAPI<any>('/api/data'),
+  
+  // New surplus food endpoints
+  addSurplusFood: (data: any) => fetchFromAPI<any>('/api/surplus', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  getSurplusFood: (filters?: any) => {
+    let endpoint = '/api/surplus';
+    if (filters) {
+      endpoint += `?${objectToUrlParams(filters)}`;
+    }
+    return fetchFromAPI<any>(endpoint);
+  },
+  requestSurplusFood: (id: string) => fetchFromAPI<any>(`/api/surplus/${id}/request`, {
+    method: 'POST',
+  }),
 };
