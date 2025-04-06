@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { api } from "@/api/client";
 import { toast } from "@/hooks/use-toast";
 import { ChevronDown, ChevronUp, Filter, Search } from "lucide-react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import RequestForm from "@/components/RequestForm";
 
 interface SurplusItem {
   id: number;
@@ -28,6 +28,8 @@ const FindSurplus: React.FC = () => {
   const [location, setLocation] = useState("");
   const [results, setResults] = useState<SurplusItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<SurplusItem | null>(null);
+  const [showRequestForm, setShowRequestForm] = useState(false);
 
   // Demo data for the example
   const demoResults: SurplusItem[] = [
@@ -65,29 +67,9 @@ const FindSurplus: React.FC = () => {
     }
   };
 
-  const handleRequest = (itemId: number) => {
-    // In a real app, you'd make an API call to request this item
-    console.log("Requesting item:", itemId);
-    toast({
-      title: "Request Sent",
-      description: "Your request for this item has been sent to the provider.",
-    });
-    
-    // In a real app:
-    // api.requestSurplusFood(itemId.toString())
-    //   .then(() => {
-    //     toast({
-    //       title: "Request Sent",
-    //       description: "Your request has been sent successfully",
-    //     });
-    //   })
-    //   .catch((error) => {
-    //     toast({
-    //       title: "Error",
-    //       description: "Failed to send your request",
-    //       variant: "destructive",
-    //     });
-    //   });
+  const handleRequest = (item: SurplusItem) => {
+    setSelectedItem(item);
+    setShowRequestForm(true);
   };
 
   const toggleFilters = () => {
@@ -211,7 +193,7 @@ const FindSurplus: React.FC = () => {
                           <Button 
                             size="sm"
                             className="bg-leaf hover:bg-leaf-dark"
-                            onClick={() => handleRequest(item.id)}
+                            onClick={() => handleRequest(item)}
                           >
                             Request
                           </Button>
@@ -231,6 +213,14 @@ const FindSurplus: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {selectedItem && (
+        <RequestForm
+          isOpen={showRequestForm}
+          onClose={() => setShowRequestForm(false)}
+          surplusItem={selectedItem}
+        />
+      )}
     </div>
   );
 };

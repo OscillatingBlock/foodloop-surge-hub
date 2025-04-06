@@ -10,6 +10,7 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import AddSurplus from "./pages/AddSurplus";
 import FindSurplus from "./pages/FindSurplus";
+import Requests from "./pages/Requests";
 
 // Create the QueryClient outside the component
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/add_surplus" element={<AddSurplus />} />
           <Route path="/find_surplus" element={<FindSurplus />} />
+          <Route path="/requests" element={<Requests />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

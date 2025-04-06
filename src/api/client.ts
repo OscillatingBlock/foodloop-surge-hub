@@ -69,6 +69,19 @@ export interface SignupData {
 
 export type UserRole = 'Farmer' | 'NGO' | 'Retailer';
 
+export interface RequestData {
+  quantity?: string;
+  notes?: string;
+  pickup_date?: string;
+}
+
+export interface RequestResponse {
+  request_id: number;
+  response: 'accept' | 'decline';
+  pickup_date?: string;
+  notes?: string;
+}
+
 /**
  * Helper function to convert an object to URL parameters
  */
@@ -126,7 +139,7 @@ export const api = {
   getOrganizations: () => fetchFromAPI<any>('/api/organizations'),
   getData: () => fetchFromAPI<any>('/api/data'),
   
-  // New surplus food endpoints
+  // Surplus food endpoints
   addSurplusFood: (data: any) => fetchFromAPI<any>('/api/surplus', {
     method: 'POST',
     body: JSON.stringify(data),
@@ -138,7 +151,22 @@ export const api = {
     }
     return fetchFromAPI<any>(endpoint);
   },
-  requestSurplusFood: (id: string) => fetchFromAPI<any>(`/api/surplus/${id}/request`, {
+  
+  // Enhanced request endpoints
+  requestSurplusFood: (id: string, requestData?: RequestData) => fetchFromAPI<any>(`/api/surplus/${id}/request`, {
     method: 'POST',
+    body: requestData ? JSON.stringify(requestData) : undefined,
   }),
+  
+  // New endpoints for request management
+  getRequests: () => fetchFromAPI<any>('/api/requests'),
+  
+  respondToRequest: (requestId: number, responseData: RequestResponse) => 
+    fetchFromAPI<any>(`/api/requests/${requestId}/respond`, {
+      method: 'POST',
+      body: JSON.stringify(responseData),
+    }),
+    
+  getRequestDetails: (requestId: number) => 
+    fetchFromAPI<any>(`/api/requests/${requestId}`),
 };
