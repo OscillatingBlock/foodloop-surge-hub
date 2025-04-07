@@ -27,7 +27,7 @@ const Dashboard: React.FC = () => {
           
           // Load appropriate data based on user role
           if (response.user.role === "NGO") {
-            // For NGOs, load AI predictions and requests
+            // For NGOs, load their requests
             loadRequests();
           } else {
             // For Farmers/Retailers, load their food items
@@ -112,13 +112,15 @@ const Dashboard: React.FC = () => {
   const displayFoodItems = foodItems.length > 0 ? foodItems : demoFoodItems;
   const displayRequests = requests.length > 0 ? requests : demoRequests;
 
-  // Render dashboard based on role
-  const userRole = user?.role as UserRole || "Farmer";
+  // IMPORTANT: Get the actual role from the user object
+  // Default to Farmer if user or role is undefined (for backward compatibility)
+  const userRole = user?.role || "Farmer";
   
+  // Render dashboard based on role
   if (userRole === "NGO") {
     return <NGODashboard requests={displayRequests} />;
   } else {
-    return <FarmerRetailerDashboard foodItems={displayFoodItems} role={userRole} />;
+    return <FarmerRetailerDashboard foodItems={displayFoodItems} role={userRole as UserRole} />;
   }
 };
 
