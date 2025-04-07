@@ -23,6 +23,7 @@ const Dashboard: React.FC = () => {
         const response = await api.auth.checkAuth();
         
         if (response.authenticated && response.user) {
+          console.log("User authenticated with role:", response.user.role);
           setUser(response.user);
           
           // Load appropriate data based on user role
@@ -112,9 +113,11 @@ const Dashboard: React.FC = () => {
   const displayFoodItems = foodItems.length > 0 ? foodItems : demoFoodItems;
   const displayRequests = requests.length > 0 ? requests : demoRequests;
 
-  // IMPORTANT: Get the actual role from the user object
+  // Get the user role from the user object
   // Default to Farmer if user or role is undefined (for backward compatibility)
   const userRole = user?.role || "Farmer";
+  
+  console.log("Rendering dashboard for role:", userRole);
   
   // Render dashboard based on role
   if (userRole === "NGO") {

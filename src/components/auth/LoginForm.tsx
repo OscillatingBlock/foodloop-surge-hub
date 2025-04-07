@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -41,12 +40,31 @@ const LoginForm: React.FC = () => {
         remember: values.remember,
       };
       
+      console.log("Logging in with credentials:", credentials);
       const result = await api.auth.login(credentials);
       
       // Handle the JWT token if returned
       if (result.token) {
         // Store token in localStorage for future API requests
         localStorage.setItem('authToken', result.token);
+        
+        // If the token contains role information, extract and use it
+        try {
+          // The token is in format header.payload.signature
+          // We only need the payload which is the second part
+          const tokenParts = result.token.split('.');
+          if (tokenParts.length >= 2) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+            console.log("Token payload:", payload);
+            
+            // Store user role in localStorage for immediate access
+            if (payload.role) {
+              localStorage.setItem('userRole', payload.role);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to parse token:", e);
+        }
       }
       
       toast({
@@ -54,11 +72,12 @@ const LoginForm: React.FC = () => {
         description: result.message || "You have been logged in successfully",
       });
       
-      // Get user data to determine their role
+      // Get user data
       const authStatus = await api.auth.checkAuth();
       
       if (authStatus.authenticated && authStatus.user) {
-        // Redirect based on user role
+        console.log("User authenticated after login:", authStatus.user);
+        // Redirect to dashboard
         navigate("/dashboard");
       } else {
         // If for some reason we can't get the user data, just go to the dashboard

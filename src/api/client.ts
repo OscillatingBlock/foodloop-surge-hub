@@ -25,6 +25,15 @@ export const fetchFromAPI = async <T>(
     ...options,
   };
 
+  // Add JWT token to Authorization header if available
+  const token = localStorage.getItem('authToken');
+  if (token && !options.headers?.['Authorization']) {
+    fetchOptions.headers = {
+      ...fetchOptions.headers,
+      'Authorization': `Bearer ${token}`
+    };
+  }
+
   try {
     const response = await fetch(url, fetchOptions);
 
@@ -98,7 +107,51 @@ export const api = {
   // Authentication
   auth: {
     // Check current authentication status
-    checkAuth: () => fetchFromAPI<{ authenticated: boolean; user?: any }>('/api/auth/status'),
+    checkAuth: async () => {
+      try {
+        // First try to get status from the backend
+        const response = await fetchFromAPI<{ authenticated: boolean; user?: any }>('/api/auth/status');
+        return response;
+      } catch (error) {
+        console.error("Auth check error:", error);
+        
+        // If backend check fails but we have a token, try to use that
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          try {
+            // Parse the token to get user info
+            const tokenParts = token.split('.');
+            if (tokenParts.length >= 2) {
+              const payload = JSON.parse(atob(tokenParts[1]));
+              
+              // Check if token is expired
+              const currentTime = Math.floor(Date.now() / 1000);
+              if (payload.exp && payload.exp < currentTime) {
+                console.log("Token expired, logging out");
+                localStorage.removeItem('authToken');
+                return { authenticated: false };
+              }
+              
+              // If token is valid, use it
+              const userRole = localStorage.getItem('userRole') || payload.role || 'Farmer';
+              
+              return { 
+                authenticated: true, 
+                user: { 
+                  id: payload.user_id,
+                  email: payload.email,
+                  role: userRole
+                } 
+              };
+            }
+          } catch (e) {
+            console.error("Failed to parse token:", e);
+          }
+        }
+        
+        return { authenticated: false };
+      }
+    },
     
     // Login with credentials
     login: (credentials: LoginCredentials) => 
@@ -126,7 +179,13 @@ export const api = {
     },
     
     // Logout - this will clear the session on the backend
-    logout: () => fetchFromAPI<{ success: boolean }>('/api/logout', { method: 'POST' }),
+    logout: () => {
+      // Clear local storage
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userRole');
+      
+      return fetchFromAPI<{ success: boolean }>('/api/logout', { method: 'POST' });
+    },
   },
   
   // Data endpoints
