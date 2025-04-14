@@ -33,7 +33,6 @@ const LoginForm: React.FC = () => {
 
   const onSubmit = async (values: LoginFormValues) => {
     try {
-      // Convert form values to the required type for the API
       const credentials: LoginCredentials = {
         email: values.email,
         password: values.password,
@@ -43,21 +42,15 @@ const LoginForm: React.FC = () => {
       console.log("Logging in with credentials:", credentials);
       const result = await api.auth.login(credentials);
       
-      // Handle the JWT token if returned
       if (result.token) {
-        // Store token in localStorage for future API requests
         localStorage.setItem('authToken', result.token);
         
-        // If the token contains role information, extract and use it
         try {
-          // The token is in format header.payload.signature
-          // We only need the payload which is the second part
           const tokenParts = result.token.split('.');
           if (tokenParts.length >= 2) {
             const payload = JSON.parse(atob(tokenParts[1]));
             console.log("Token payload:", payload);
             
-            // Store user role in localStorage for immediate access
             if (payload.role) {
               localStorage.setItem('userRole', payload.role);
             }
@@ -72,21 +65,17 @@ const LoginForm: React.FC = () => {
         description: result.message || "You have been logged in successfully",
       });
       
-      // Get user data
       const authStatus = await api.auth.checkAuth();
       
       if (authStatus.authenticated && authStatus.user) {
         console.log("User authenticated after login:", authStatus.user);
-        // Redirect to dashboard
         navigate("/dashboard");
       } else {
-        // If for some reason we can't get the user data, just go to the dashboard
         navigate("/dashboard");
       }
     } catch (error) {
       console.error("Login error:", error);
       
-      // More detailed error message
       let errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       
       toast({
@@ -154,13 +143,6 @@ const LoginForm: React.FC = () => {
           </Button>
         </form>
       </Form>
-
-      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
-        <p className="text-sm mb-2 font-medium">Important:</p>
-        <p className="text-sm">
-          Make sure your Flask backend server is running at <code className="bg-amber-100 px-1 py-0.5 rounded">http://localhost:5000</code> or update the API_BASE_URL in the API client if your server is running elsewhere.
-        </p>
-      </div>
 
       <div className="text-center mt-4">
         <p className="text-gray-600">

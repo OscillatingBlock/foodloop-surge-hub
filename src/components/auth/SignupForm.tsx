@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -44,10 +43,8 @@ const SignupForm: React.FC = () => {
 
   const onSubmit = async (values: SignupFormValues) => {
     try {
-      // Remove confirmPassword as it's not needed in the API call
       const { confirmPassword, ...formData } = values;
       
-      // Create a properly typed object for the API call
       const userData: SignupData = {
         username: formData.username,
         email: formData.email,
@@ -61,12 +58,10 @@ const SignupForm: React.FC = () => {
         description: result.message || "Your account has been created successfully",
       });
       
-      // Redirect to login page after successful signup
       navigate("/login");
     } catch (error) {
       console.error("Signup error:", error);
       
-      // More detailed error message
       let errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       
       toast({
@@ -208,13 +203,6 @@ const SignupForm: React.FC = () => {
           </Button>
         </form>
       </Form>
-
-      <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md text-amber-800">
-        <p className="text-sm mb-2 font-medium">Important:</p>
-        <p className="text-sm">
-          Make sure your Flask backend server is running at <code className="bg-amber-100 px-1 py-0.5 rounded">http://localhost:5000</code> or update the API_BASE_URL in the API client if your server is running elsewhere.
-        </p>
-      </div>
 
       <div className="text-center mt-4">
         <p className="text-gray-600">
