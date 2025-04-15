@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,9 @@ interface Request {
   food_name: string;
   quantity: string;
   requester_name: string; // For Farmer/Retailer view (NGO name)
+  requester_id?: number;  // NGO ID
   provider_name?: string;  // For NGO view
+  provider_id?: number;    // Provider ID
   request_date: string;
   status: string;
   notes?: string;

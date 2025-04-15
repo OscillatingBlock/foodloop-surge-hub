@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,23 @@ const RequestForm: React.FC<RequestFormProps> = ({ isOpen, onClose, surplusItem 
   const [quantity, setQuantity] = useState("");
   const [notes, setNotes] = useState("");
   const [ngoName, setNgoName] = useState("");
+  const [user, setUser] = useState<any>(null);
+
+  // Fetch the current user to get the NGO ID
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await api.auth.checkAuth();
+        if (response.authenticated && response.user) {
+          setUser(response.user);
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    
+    fetchUser();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,16 +61,12 @@ const RequestForm: React.FC<RequestFormProps> = ({ isOpen, onClose, surplusItem 
         quantity: quantity || surplusItem.quantity, // Default to full quantity if not specified
         notes: notes || undefined,
         pickup_date: undefined, // This will be set by the farmer when accepting
-        request_date: format(new Date(), 'yyyy-MM-dd') // Today's date
+        request_date: format(new Date(), 'yyyy-MM-dd'), // Today's date
+        ngo_name: ngoName,
+        ngo_id: user?.id // Include the NGO ID from the logged-in user
       };
 
-      // Add NGO name to the request
-      const requestWithNGO = {
-        ...requestData,
-        ngo_name: ngoName
-      };
-
-      await api.requestSurplusFood(surplusItem.id.toString(), requestWithNGO);
+      await api.requestSurplusFood(surplusItem.id.toString(), requestData);
       
       toast({
         title: "Request Sent",
