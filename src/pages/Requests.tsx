@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -96,6 +95,7 @@ const Requests: React.FC = () => {
           food_name: "Apples",
           quantity: "10 kg",
           provider_name: "Green Farms",
+          requester_name: "School Lunch Program",
           request_date: "2025-03-28",
           status: "Completed",
           notes: "For school lunch program"
