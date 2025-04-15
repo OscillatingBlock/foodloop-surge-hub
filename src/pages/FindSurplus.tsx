@@ -1,15 +1,18 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/api/client";
-import { toast } from "@/hooks/use-toast";
-import { ChevronDown, ChevronUp, Filter, Search } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ChevronDown, ChevronUp, Filter, Search, MapPin, Clock, Package, User } from "lucide-react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import RequestForm from "@/components/RequestForm";
+import { useQuery } from "@tanstack/react-query";
 
 interface SurplusItem {
   id: number;
@@ -17,54 +20,56 @@ interface SurplusItem {
   quantity: string;
   location: string;
   expiry: string;
-  provider: string;
+  status: string;
+  provider?: string;
 }
 
 const FindSurplus: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [foodType, setFoodType] = useState("");
   const [location, setLocation] = useState("");
-  const [results, setResults] = useState<SurplusItem[]>([]);
-  const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState<SurplusItem | null>(null);
   const [showRequestForm, setShowRequestForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
-  // Demo data for the example
-  const demoResults: SurplusItem[] = [
-    { id: 1, name: "Rice", quantity: "100 kg", location: "Farmland District", expiry: "2025-07-15", provider: "Green Farms" },
-    { id: 2, name: "Apples", quantity: "50 kg", location: "Central Market", expiry: "2025-05-01", provider: "Fresh Produce Inc." },
-    { id: 3, name: "Milk", quantity: "30 liters", location: "Dairy Cooperative", expiry: "2025-04-15", provider: "Happy Cows Dairy" },
-    { id: 4, name: "Vegetables", quantity: "75 kg", location: "Farmland District", expiry: "2025-04-10", provider: "Green Farms" },
-    { id: 5, name: "Bread", quantity: "25 kg", location: "Downtown Bakery", expiry: "2025-04-07", provider: "Golden Grain" },
-  ];
+  // Use React Query to fetch all surplus food items from all farmers
+  const { data: allSurplusItems, isLoading, error, refetch } = useQuery({
+    queryKey: ['allSurplusFood', searchTerm, foodType, location],
+    queryFn: async () => {
+      const filters: Record<string, string> = {};
+      if (searchTerm) filters.term = searchTerm;
+      if (foodType) filters.type = foodType;
+      if (location) filters.location = location;
+      
+      // Use a different API endpoint specifically for NGOs
+      return api.getAllSurplusFood(filters);
+    },
+    enabled: false, // Don't auto-fetch on component mount
+  });
 
-  const handleSearch = async () => {
-    setLoading(true);
-    try {
-      // In a real application, you would make an API call with the filters
-      console.log("Searching with filters:", { searchTerm, foodType, location });
-      
-      // Simulate API call with setTimeout
-      setTimeout(() => {
-        // For the demo, we'll just return the demo data
-        setResults(demoResults);
-        setLoading(false);
-      }, 1000);
-      
-      // In a real app, you'd do something like:
-      // const data = await api.getSurplusFood({ term: searchTerm, type: foodType, location });
-      // setResults(data);
-    } catch (error) {
-      console.error("Search error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to retrieve surplus food listings",
-        variant: "destructive",
-      });
-      setLoading(false);
-    }
+  // Filter the results based on search criteria
+  const filteredResults = React.useMemo(() => {
+    if (!allSurplusItems) return [];
+    
+    let results = [...allSurplusItems];
+    
+    // Apply any additional client-side filtering if needed
+    return results;
+  }, [allSurplusItems]);
+
+  // Pagination logic
+  const totalPages = Math.ceil((filteredResults?.length || 0) / itemsPerPage);
+  const paginatedResults = filteredResults.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handleSearch = () => {
+    refetch();
   };
 
   const handleRequest = (item: SurplusItem) => {
@@ -124,9 +129,9 @@ const FindSurplus: React.FC = () => {
               <Button 
                 className="bg-leaf hover:bg-leaf-dark"
                 onClick={handleSearch}
-                disabled={loading}
+                disabled={isLoading}
               >
-                {loading ? "Searching..." : "Search"}
+                {isLoading ? "Searching..." : "Search"}
               </Button>
             </div>
 
@@ -167,47 +172,99 @@ const FindSurplus: React.FC = () => {
               </div>
             )}
 
-            {results.length > 0 && (
-              <div className="mt-6">
-                <h3 className="font-medium text-lg mb-4">Available Surplus Food ({results.length})</h3>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Food Name</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Expiry Date</TableHead>
-                      <TableHead>Provider</TableHead>
-                      <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {results.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell>{item.quantity}</TableCell>
-                        <TableCell>{item.location}</TableCell>
-                        <TableCell>{item.expiry}</TableCell>
-                        <TableCell>{item.provider}</TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            size="sm"
-                            className="bg-leaf hover:bg-leaf-dark"
-                            onClick={() => handleRequest(item)}
-                          >
-                            Request
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+            {error && (
+              <div className="p-4 border border-red-300 bg-red-50 rounded-md text-red-600">
+                Error loading surplus items. Please try again.
               </div>
             )}
 
-            {searchTerm && results.length === 0 && !loading && (
+            {isLoading && (
+              <div className="flex justify-center p-8">
+                <div className="w-12 h-12 border-4 border-leaf border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+
+            {!isLoading && paginatedResults.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-medium text-lg mb-4">Available Surplus Food ({filteredResults.length})</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {paginatedResults.map((item) => (
+                    <Card key={item.id} className="overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="bg-leaf/10 p-4">
+                          <h3 className="text-lg font-semibold">{item.name}</h3>
+                          <div className="flex items-center mt-2 text-sm text-gray-600">
+                            <User className="w-4 h-4 mr-1" />
+                            <span>{item.provider || "Anonymous Provider"}</span>
+                          </div>
+                        </div>
+                        <div className="p-4 space-y-2">
+                          <div className="flex items-center text-sm">
+                            <Package className="w-4 h-4 mr-2 text-gray-500" />
+                            <span>Quantity: {item.quantity}</span>
+                          </div>
+                          <div className="flex items-center text-sm">
+                            <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                            <span>Location: {item.location}</span>
+                          </div>
+                          <div className="flex items-center text-sm">
+                            <Clock className="w-4 h-4 mr-2 text-gray-500" />
+                            <span>Expires: {item.expiry}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="bg-gray-50 p-3">
+                        <Button 
+                          className="w-full bg-leaf hover:bg-leaf-dark"
+                          onClick={() => handleRequest(item)}
+                        >
+                          Request This Item
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <Pagination className="mt-6">
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: totalPages }).map((_, index) => (
+                        <PaginationItem key={index}>
+                          <PaginationLink 
+                            onClick={() => setCurrentPage(index + 1)}
+                            isActive={currentPage === index + 1}
+                          >
+                            {index + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
+              </div>
+            )}
+
+            {!isLoading && paginatedResults.length === 0 && (
               <div className="mt-6 text-center py-8">
-                <p className="text-gray-500">No results found. Try adjusting your search criteria.</p>
+                <p className="text-gray-500">
+                  {searchTerm || foodType || location 
+                    ? "No results found. Try adjusting your search criteria."
+                    : "Click 'Search' to find available surplus food."}
+                </p>
               </div>
             )}
           </div>

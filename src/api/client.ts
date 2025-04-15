@@ -211,6 +211,15 @@ export const api = {
     return fetchFromAPI<any>(endpoint);
   },
   
+  // New endpoint for NGOs to view all surplus food (not just their own)
+  getAllSurplusFood: (filters?: any) => {
+    let endpoint = '/api/all-surplus';
+    if (filters) {
+      endpoint += `?${objectToUrlParams(filters)}`;
+    }
+    return fetchFromAPI<any>(endpoint);
+  },
+  
   // Enhanced request endpoints
   requestSurplusFood: (id: string, requestData?: RequestData) => fetchFromAPI<any>(`/api/surplus/${id}/request`, {
     method: 'POST',
