@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { api, RequestData } from "@/api/client";
+import { format } from "date-fns";
 
 interface RequestFormProps {
   isOpen: boolean;
@@ -22,18 +23,37 @@ const RequestForm: React.FC<RequestFormProps> = ({ isOpen, onClose, surplusItem 
   const [loading, setLoading] = useState(false);
   const [quantity, setQuantity] = useState("");
   const [notes, setNotes] = useState("");
+  const [ngoName, setNgoName] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!ngoName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide your organization name",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
 
     try {
       const requestData: RequestData = {
         quantity: quantity || surplusItem.quantity, // Default to full quantity if not specified
         notes: notes || undefined,
+        pickup_date: undefined, // This will be set by the farmer when accepting
+        request_date: format(new Date(), 'yyyy-MM-dd') // Today's date
       };
 
-      await api.requestSurplusFood(surplusItem.id.toString(), requestData);
+      // Add NGO name to the request
+      const requestWithNGO = {
+        ...requestData,
+        ngo_name: ngoName
+      };
+
+      await api.requestSurplusFood(surplusItem.id.toString(), requestWithNGO);
       
       toast({
         title: "Request Sent",
@@ -64,6 +84,17 @@ const RequestForm: React.FC<RequestFormProps> = ({ isOpen, onClose, surplusItem 
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="ngo-name">Organization Name</Label>
+            <Input
+              id="ngo-name"
+              placeholder="Enter your organization name"
+              value={ngoName}
+              onChange={(e) => setNgoName(e.target.value)}
+              required
+            />
+          </div>
+          
           <div className="space-y-2">
             <Label htmlFor="quantity">Quantity</Label>
             <Input

@@ -13,7 +13,7 @@ interface Request {
   id: number;
   food_name: string;
   quantity: string;
-  requester_name?: string; // For Farmer/Retailer view
+  requester_name: string; // For Farmer/Retailer view (NGO name)
   provider_name?: string;  // For NGO view
   request_date: string;
   status: string;
@@ -78,7 +78,8 @@ const Requests: React.FC = () => {
           quantity: "25 kg",
           requester_name: "Food Relief NGO",
           request_date: "2025-04-03",
-          status: "Pending"
+          status: "Pending",
+          notes: "Needed for our community kitchen program"
         },
         {
           id: 2,
@@ -87,7 +88,8 @@ const Requests: React.FC = () => {
           requester_name: "Community Kitchen",
           request_date: "2025-04-01",
           status: "Accepted",
-          pickup_date: "2025-04-08"
+          pickup_date: "2025-04-08",
+          notes: "Will be used in our weekly meal program"
         },
         {
           id: 3,
@@ -95,7 +97,8 @@ const Requests: React.FC = () => {
           quantity: "10 kg",
           provider_name: "Green Farms",
           request_date: "2025-03-28",
-          status: "Completed"
+          status: "Completed",
+          notes: "For school lunch program"
         }
       ]);
     } finally {

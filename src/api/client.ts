@@ -82,6 +82,8 @@ export interface RequestData {
   quantity?: string;
   notes?: string;
   pickup_date?: string;
+  request_date?: string; // Date when the request is made
+  ngo_name?: string;     // Name of the requesting NGO
 }
 
 export interface RequestResponse {
