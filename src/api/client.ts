@@ -1,4 +1,3 @@
-
 /**
  * API client for connecting to the Flask backend
  */
@@ -230,7 +229,13 @@ export const api = {
   }),
   
   // New endpoints for request management
-  getRequests: () => fetchFromAPI<any>('/api/requests'),
+  getRequests: (filterType?: string) => {
+    let endpoint = '/api/requests';
+    if (filterType) {
+      endpoint += `?type=${filterType}`;
+    }
+    return fetchFromAPI<any>(endpoint);
+  },
   
   respondToRequest: (requestId: number, responseData: RequestResponse) => 
     fetchFromAPI<any>(`/api/requests/${requestId}/respond`, {

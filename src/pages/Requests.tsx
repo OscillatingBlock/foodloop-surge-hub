@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,7 @@ const Requests: React.FC = () => {
         const response = await api.auth.checkAuth();
         if (response.authenticated && response.user) {
           setUser(response.user);
-          loadRequests();
+          loadRequests(response.user.role);
         } else {
           toast({
             title: "Authentication required",
@@ -59,11 +58,54 @@ const Requests: React.FC = () => {
     checkAuth();
   }, [navigate]);
 
-  const loadRequests = async () => {
+  const loadRequests = async (userRole: string) => {
     try {
       setLoading(true);
-      const data = await api.getRequests();
+      const filterType = userRole === "NGO" ? "made" : "received";
+      console.log(`Loading ${filterType} requests for ${userRole} user`);
+      
+      const data = await api.getRequests(filterType);
       setRequests(data || []);
+      
+      if (!data || data.length === 0) {
+        console.log("No requests found, using demo data");
+        
+        setRequests([
+          {
+            id: 1,
+            food_name: "Rice",
+            quantity: "25 kg",
+            requester_name: "Food Relief NGO",
+            requester_id: 2,
+            request_date: "2025-04-03",
+            status: "Pending",
+            notes: "Needed for our community kitchen program"
+          },
+          {
+            id: 2,
+            food_name: "Vegetables",
+            quantity: "15 kg",
+            requester_name: "Community Kitchen",
+            requester_id: 3,
+            request_date: "2025-04-01",
+            status: "Accepted",
+            pickup_date: "2025-04-08",
+            notes: "Will be used in our weekly meal program"
+          },
+          {
+            id: 3,
+            food_name: "Apples",
+            quantity: "10 kg",
+            provider_name: "Green Farms",
+            provider_id: 1,
+            requester_name: "School Lunch Program",
+            requester_id: 4,
+            request_date: "2025-03-28",
+            status: "Completed",
+            notes: "For school lunch program"
+          }
+        ]);
+      }
     } catch (error) {
       console.error("Error loading requests:", error);
       toast({
@@ -71,39 +113,6 @@ const Requests: React.FC = () => {
         description: "Failed to load requests",
         variant: "destructive",
       });
-      
-      // Demo data for testing
-      setRequests([
-        {
-          id: 1,
-          food_name: "Rice",
-          quantity: "25 kg",
-          requester_name: "Food Relief NGO",
-          request_date: "2025-04-03",
-          status: "Pending",
-          notes: "Needed for our community kitchen program"
-        },
-        {
-          id: 2,
-          food_name: "Vegetables",
-          quantity: "15 kg",
-          requester_name: "Community Kitchen",
-          request_date: "2025-04-01",
-          status: "Accepted",
-          pickup_date: "2025-04-08",
-          notes: "Will be used in our weekly meal program"
-        },
-        {
-          id: 3,
-          food_name: "Apples",
-          quantity: "10 kg",
-          provider_name: "Green Farms",
-          requester_name: "School Lunch Program",
-          request_date: "2025-03-28",
-          status: "Completed",
-          notes: "For school lunch program"
-        }
-      ]);
     } finally {
       setLoading(false);
     }
@@ -126,7 +135,6 @@ const Requests: React.FC = () => {
   const acceptedRequests = requests.filter(req => req.status === "Accepted");
   const pastRequests = requests.filter(req => ["Completed", "Declined"].includes(req.status));
 
-  // Determine if user is NGO or Farmer/Retailer to show appropriate view
   const isNGO = user?.role === "NGO";
 
   return (
