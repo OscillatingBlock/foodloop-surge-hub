@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api } from "@/api/client";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronDown, ChevronUp, Filter, Search, MapPin, Clock, Package, User } from "lucide-react";
+import { ChevronDown, ChevronUp, Filter, Search, MapPin, Clock, Package, User, AlertTriangle } from "lucide-react";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import RequestForm from "@/components/RequestForm";
@@ -34,19 +34,56 @@ const FindSurplus: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<SurplusItem | null>(null);
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const itemsPerPage = 6;
+
+  // Check user authentication and role
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const authResponse = await api.auth.checkAuth();
+        setIsAuthenticated(authResponse.authenticated);
+        if (authResponse.authenticated && authResponse.user) {
+          setUserRole(authResponse.user.role);
+        }
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+      }
+    };
+    
+    checkAuth();
+  }, []);
 
   // Use React Query to fetch all surplus food items from all farmers
   const { data: allSurplusItems, isLoading, error, refetch } = useQuery({
-    queryKey: ['allSurplusFood', searchTerm, foodType, location],
+    queryKey: ['allSurplusFood', searchTerm, foodType, location, userRole],
     queryFn: async () => {
       const filters: Record<string, string> = {};
       if (searchTerm) filters.term = searchTerm;
       if (foodType) filters.type = foodType;
       if (location) filters.location = location;
       
-      // Use a different API endpoint specifically for NGOs
-      return api.getAllSurplusFood(filters);
+      try {
+        // Use the appropriate API endpoint based on user role
+        if (userRole === 'NGO') {
+          return await api.getAllSurplusFood(filters);
+        } else {
+          // Fallback to regular surplus food endpoint if not an NGO
+          return await api.getSurplusFood(filters);
+        }
+      } catch (error) {
+        console.error("Error fetching surplus food:", error);
+        // If 403 error, display a toast
+        if (error instanceof Error && error.message.includes('403')) {
+          toast({
+            title: "Access Denied",
+            description: "You need to be logged in as an NGO to view all surplus food",
+            variant: "destructive",
+          });
+        }
+        throw error;
+      }
     },
     enabled: false, // Don't auto-fetch on component mount
   });
@@ -73,6 +110,24 @@ const FindSurplus: React.FC = () => {
   };
 
   const handleRequest = (item: SurplusItem) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to request surplus food",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (userRole !== 'NGO') {
+      toast({
+        title: "Access Denied",
+        description: "Only NGOs can request surplus food",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setSelectedItem(item);
     setShowRequestForm(true);
   };
@@ -112,6 +167,20 @@ const FindSurplus: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {!isAuthenticated && (
+            <div className="mb-4 p-4 border border-amber-300 bg-amber-50 rounded-md flex items-center gap-2 text-amber-800">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <span>You are not logged in. Some features may be restricted.</span>
+            </div>
+          )}
+          
+          {isAuthenticated && userRole !== 'NGO' && (
+            <div className="mb-4 p-4 border border-amber-300 bg-amber-50 rounded-md flex items-center gap-2 text-amber-800">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <span>Only NGOs can view all surplus food and make requests. Your access is limited.</span>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
@@ -174,7 +243,9 @@ const FindSurplus: React.FC = () => {
 
             {error && (
               <div className="p-4 border border-red-300 bg-red-50 rounded-md text-red-600">
-                Error loading surplus items. Please try again.
+                {error instanceof Error && error.message.includes('403')
+                  ? "You don't have permission to view all surplus food. Please log in as an NGO."
+                  : "Error loading surplus items. Please try again."}
               </div>
             )}
 
@@ -217,6 +288,7 @@ const FindSurplus: React.FC = () => {
                         <Button 
                           className="w-full bg-leaf hover:bg-leaf-dark"
                           onClick={() => handleRequest(item)}
+                          disabled={!isAuthenticated || userRole !== 'NGO'}
                         >
                           Request This Item
                         </Button>
