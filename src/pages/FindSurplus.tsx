@@ -67,10 +67,10 @@ const FindSurplus: React.FC = () => {
       try {
         // Use the appropriate API endpoint based on user role
         if (userRole === 'NGO') {
-          return await api.getAllSurplusFood(filters);
+          return await api.surplus.getAllSurplusFood(filters);
         } else {
           // Fallback to regular surplus food endpoint if not an NGO
-          return await api.getSurplusFood(filters);
+          return await api.surplus.getSurplusFood(filters);
         }
       } catch (error) {
         console.error("Error fetching surplus food:", error);

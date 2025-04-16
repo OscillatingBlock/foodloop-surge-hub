@@ -60,7 +60,7 @@ const Dashboard: React.FC = () => {
   const loadFoodItems = async () => {
     try {
       // In a real app, you would have a proper endpoint to get user's food items
-      const data = await api.getSurplusFood();
+      const data = await api.surplus.getSurplusFood();
       setFoodItems(data || []);
     } catch (error) {
       console.error("Error loading food items:", error);

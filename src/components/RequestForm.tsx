@@ -66,7 +66,7 @@ const RequestForm: React.FC<RequestFormProps> = ({ isOpen, onClose, surplusItem 
         ngo_id: user?.id // Include the NGO ID from the logged-in user
       };
 
-      await api.requestSurplusFood(surplusItem.id.toString(), requestData);
+      await api.surplus.requestSurplusFood(surplusItem.id.toString(), requestData);
       
       toast({
         title: "Request Sent",

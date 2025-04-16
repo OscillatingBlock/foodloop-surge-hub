@@ -49,7 +49,7 @@ const AddSurplus: React.FC = () => {
       console.log("Submitting surplus food:", values);
       
       // In a real app, you would use a real API endpoint
-      await api.addSurplusFood(values);
+      await api.surplus.addSurplusFood(values);
       
       toast({
         title: "Success",

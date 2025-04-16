@@ -67,7 +67,7 @@ const RequestResponseForm: React.FC<RequestResponseFormProps> = ({
         responseData.pickup_date = format(date, 'yyyy-MM-dd');
       }
 
-      await api.respondToRequest(requestId, responseData);
+      await api.requests.respondToRequest(requestId, responseData);
       
       toast({
         title: response === 'accept' ? "Request Accepted" : "Request Declined",
