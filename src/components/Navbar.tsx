@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Menu, X, Leaf, LogIn, UserPlus, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { api } from "@/api/client";
+import { api } from "@/api";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 

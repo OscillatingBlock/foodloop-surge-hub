@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { api } from '@/api/client';
+import { api } from '@/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
