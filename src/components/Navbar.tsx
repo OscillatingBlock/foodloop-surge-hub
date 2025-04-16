@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Menu, X, Leaf, LogIn, UserPlus, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,27 +14,42 @@ const Navbar: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Check authentication status on mount
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        setIsLoading(true);
-        const response = await api.auth.checkAuth();
-        setIsAuthenticated(response.authenticated);
-        if (response.user) {
-          setUser(response.user);
-        }
-      } catch (error) {
-        console.error("Failed to check authentication status:", error);
-        // Assume not authenticated on error
-        setIsAuthenticated(false);
+  // Check authentication status on mount and when localStorage changes
+  const checkAuthStatus = async () => {
+    try {
+      setIsLoading(true);
+      const response = await api.auth.checkAuth();
+      setIsAuthenticated(response.authenticated);
+      if (response.user) {
+        setUser(response.user);
+      } else {
         setUser(null);
-      } finally {
-        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Failed to check authentication status:", error);
+      // Assume not authenticated on error
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAuthStatus();
+    
+    // Add event listener for storage events (auth changes in other tabs)
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'authToken') {
+        checkAuthStatus();
       }
     };
-
-    checkAuthStatus();
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   useEffect(() => {

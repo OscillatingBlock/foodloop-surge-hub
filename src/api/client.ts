@@ -1,9 +1,13 @@
+
 /**
  * API client for connecting to the Flask backend
  */
 
 // Base URL for the Flask backend - update this to your actual backend URL when deployed
 const API_BASE_URL = 'http://localhost:5000';
+
+// Add event for cross-tab communication
+const AUTH_CHANGE_EVENT = 'foodloop-auth-change';
 
 /**
  * Generic fetch function to make API requests to the Flask backend
@@ -72,7 +76,7 @@ export interface SignupData {
   username: string;
   email: string;
   password: string;
-  role: string; // Added role field
+  role: string;
 }
 
 export type UserRole = 'Farmer' | 'NGO' | 'Retailer';
@@ -81,9 +85,9 @@ export interface RequestData {
   quantity?: string;
   notes?: string;
   pickup_date?: string;
-  request_date?: string; // Date when the request is made
-  ngo_name?: string;     // Name of the requesting NGO
-  ngo_id?: number;       // ID of the requesting NGO
+  request_date?: string;
+  ngo_name?: string;
+  ngo_id?: number;
 }
 
 export interface RequestResponse {
@@ -92,6 +96,15 @@ export interface RequestResponse {
   pickup_date?: string;
   notes?: string;
 }
+
+// Helper function to broadcast auth changes to other tabs
+const broadcastAuthChange = () => {
+  const event = new StorageEvent('storage', {
+    key: 'authToken',
+    newValue: localStorage.getItem('authToken'),
+  });
+  window.dispatchEvent(event);
+};
 
 /**
  * Helper function to convert an object to URL parameters
@@ -131,6 +144,8 @@ export const api = {
               if (payload.exp && payload.exp < currentTime) {
                 console.log("Token expired, logging out");
                 localStorage.removeItem('authToken');
+                localStorage.removeItem('userRole');
+                broadcastAuthChange();
                 return { authenticated: false };
               }
               
@@ -156,11 +171,35 @@ export const api = {
     },
     
     // Login with credentials
-    login: (credentials: LoginCredentials) => 
-      fetchFromAPI<{ message: string; token?: string }>('/api/login', {
+    login: async (credentials: LoginCredentials) => {
+      const result = await fetchFromAPI<{ message: string; token?: string }>('/api/login', {
         method: 'POST',
         body: JSON.stringify(credentials)
-      }),
+      });
+      
+      if (result.token) {
+        localStorage.setItem('authToken', result.token);
+        
+        try {
+          const tokenParts = result.token.split('.');
+          if (tokenParts.length >= 2) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+            console.log("Token payload:", payload);
+            
+            if (payload.role) {
+              localStorage.setItem('userRole', payload.role);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to parse token:", e);
+        }
+        
+        // Broadcast auth change to other tabs
+        broadcastAuthChange();
+      }
+      
+      return result;
+    },
     
     // Signup with user data
     signup: (userData: SignupData) => 
@@ -181,10 +220,13 @@ export const api = {
     },
     
     // Logout - this will clear the session on the backend
-    logout: () => {
+    logout: async () => {
       // Clear local storage
       localStorage.removeItem('authToken');
       localStorage.removeItem('userRole');
+      
+      // Broadcast the change to other tabs
+      broadcastAuthChange();
       
       return fetchFromAPI<{ success: boolean }>('/api/logout', { method: 'POST' });
     },
@@ -246,3 +288,11 @@ export const api = {
   getRequestDetails: (requestId: number) => 
     fetchFromAPI<any>(`/api/requests/${requestId}`),
 };
+
+// Listen for auth changes from other tabs
+window.addEventListener('storage', (event) => {
+  if (event.key === 'authToken') {
+    // Force reload the page to apply new auth state
+    window.location.reload();
+  }
+});
