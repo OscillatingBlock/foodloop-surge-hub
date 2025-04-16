@@ -1,8 +1,4 @@
-# Welcome to your Lovable project
-
-## Project info
-
-**URL**: https://lovable.dev/projects/b1ff370d-1544-4d4b-a4bc-b804159b6352
+# Welcome to your Foodloop project
 
 ## How can I edit this code?
 
