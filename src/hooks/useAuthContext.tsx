@@ -1,5 +1,7 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '@/api';
+import { toast } from '@/hooks/use-toast';
 
 interface User {
   id: number;
@@ -44,11 +46,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      setIsLoading(true);
       await api.auth.logout();
       setIsAuthenticated(false);
       setUser(null);
+      return Promise.resolve();
     } catch (error) {
       console.error("Logout error:", error);
+      // Despite API errors, we should still update the local state
+      setIsAuthenticated(false);
+      setUser(null);
+      // Re-throw the error to let the component handle it
+      return Promise.reject(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

@@ -116,13 +116,29 @@ export const authApi = {
   
   // Logout - this will clear the session on the backend
   logout: async () => {
-    // Clear local storage
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userRole');
-    
-    // Broadcast the change to other tabs
-    broadcastAuthChange();
-    
-    return fetchFromAPI<{ success: boolean }>('/api/logout', { method: 'POST' });
+    try {
+      // Clear local storage
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userRole');
+      
+      // Broadcast the change to other tabs
+      broadcastAuthChange();
+      
+      // Call the backend to clear server-side session if available
+      return await fetchFromAPI<{ success: boolean }>('/api/logout', { 
+        method: 'POST',
+        credentials: 'include' 
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      
+      // Even if the API call fails, we should still clear local data
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userRole');
+      broadcastAuthChange();
+      
+      // Re-throw the error so the component can handle it
+      throw error;
+    }
   },
 };

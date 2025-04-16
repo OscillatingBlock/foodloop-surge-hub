@@ -2,55 +2,15 @@
 import React, { useState, useEffect } from "react";
 import { Menu, X, Leaf, LogIn, UserPlus, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { api } from "@/api";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuthContext";
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
-  // Check authentication status on mount and when localStorage changes
-  const checkAuthStatus = async () => {
-    try {
-      setIsLoading(true);
-      const response = await api.auth.checkAuth();
-      setIsAuthenticated(response.authenticated);
-      if (response.user) {
-        setUser(response.user);
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error("Failed to check authentication status:", error);
-      // Assume not authenticated on error
-      setIsAuthenticated(false);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    checkAuthStatus();
-    
-    // Add event listener for storage events (auth changes in other tabs)
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'authToken') {
-        checkAuthStatus();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
+  const { isAuthenticated, user, isLoading, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,16 +35,14 @@ const Navbar: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await api.auth.logout();
-      // Let the backend handle the session destruction
-      setIsAuthenticated(false);
-      setUser(null);
+      await logout();
       navigate("/");
       toast({
         title: "Logged out",
         description: "You have been successfully logged out",
       });
     } catch (error) {
+      console.error("Logout error:", error);
       toast({
         title: "Error",
         description: "Failed to log out. Please try again.",
@@ -146,7 +104,7 @@ const Navbar: React.FC = () => {
               <>
                 <div className="flex items-center text-sm text-gray-700">
                   <User className="h-4 w-4 mr-2" />
-                  {user?.name || 'User'}
+                  {user?.username || user?.email || 'User'}
                 </div>
                 <Button 
                   variant="outline" 
@@ -230,7 +188,7 @@ const Navbar: React.FC = () => {
                   <>
                     <div className="flex items-center text-sm text-gray-700 py-2 px-4">
                       <User className="h-4 w-4 mr-2" />
-                      {user?.name || 'User'}
+                      {user?.username || user?.email || 'User'}
                     </div>
                     <Button 
                       variant="outline" 
