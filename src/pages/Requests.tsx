@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,8 @@ const Requests: React.FC = () => {
       const filterType = userRole === "NGO" ? "made" : "received";
       console.log(`Loading ${filterType} requests for ${userRole} user`);
       
-      const data = await api.requestsApi.getRequests(filterType);
+      // Updated to use api.requests instead of api.requestsApi
+      const data = await api.requests.getRequests(filterType);
       console.log("Received requests data:", data);
       
       if (data && Array.isArray(data) && data.length > 0) {

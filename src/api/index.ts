@@ -13,9 +13,9 @@ export type UserRole = 'Farmer' | 'NGO' | 'Retailer';
 // Combine all API functions into a single object
 export const api = {
   auth: authApi,
-  ...dataApi,
-  ...requestsApi,
-  ...surplusApi,
+  requests: requestsApi,  // Change from spreading to using as named property
+  surplus: surplusApi,    // Change from spreading to using as named property
+  ...dataApi,             // Keep dataApi spread for now as it might be used directly
 };
 
 // Export utility functions
