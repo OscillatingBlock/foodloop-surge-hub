@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { api, RequestData } from "@/api/client";
+import { api, RequestData } from "@/api";
 import { format } from "date-fns";
 
 interface RequestFormProps {

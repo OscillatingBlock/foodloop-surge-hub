@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { api, RequestResponse } from "@/api/client";
+import { api, RequestResponse } from "@/api";
 import { toast } from "@/hooks/use-toast";
 
 interface RequestResponseFormProps {

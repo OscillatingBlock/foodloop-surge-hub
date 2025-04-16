@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { api } from "@/api/client";
+import { api } from "@/api";
 import { toast } from "@/hooks/use-toast";
 
 const formSchema = z.object({

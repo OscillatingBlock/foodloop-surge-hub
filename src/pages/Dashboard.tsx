@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { api } from "@/api/client";
+import { api } from "@/api";
 import { Plus, Search, ChartBar } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { UserRole } from "@/api/client";
+import { UserRole } from "@/api";
 
 const Dashboard: React.FC = () => {
   const [user, setUser] = useState<any>(null);
