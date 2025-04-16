@@ -18,12 +18,13 @@ export interface RequestResponse {
 }
 
 export const requestsApi = {
-  // New endpoints for request management
+  // Fetch all requests based on filter type (made or received)
   getRequests: (filterType?: string) => {
     let endpoint = '/api/requests';
     if (filterType) {
       endpoint += `?type=${filterType}`;
     }
+    console.log(`Fetching requests with endpoint: ${endpoint}`);
     return fetchFromAPI<any>(endpoint);
   },
   

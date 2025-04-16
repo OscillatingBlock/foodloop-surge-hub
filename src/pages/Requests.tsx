@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { api } from "@/api";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuthContext";
 import RequestResponseForm from "@/components/RequestResponseForm";
 
 interface Request {
@@ -25,51 +25,41 @@ interface Request {
 
 const Requests: React.FC = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [requests, setRequests] = useState<Request[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [showResponseForm, setShowResponseForm] = useState(false);
+  const [loadingRequests, setLoadingRequests] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await api.auth.checkAuth();
-        if (response.authenticated && response.user) {
-          setUser(response.user);
-          loadRequests(response.user.role);
-        } else {
-          toast({
-            title: "Authentication required",
-            description: "Please log in to access requests",
-            variant: "destructive",
-          });
-          navigate("/login");
-        }
-      } catch (error) {
-        console.error("Auth check error:", error);
-        toast({
-          title: "Error",
-          description: "Failed to verify your authentication status",
-          variant: "destructive",
-        });
-      }
-    };
-
-    checkAuth();
-  }, [navigate]);
+    if (isLoading) return;
+    
+    if (!isAuthenticated || !user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to access requests",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+    
+    loadRequests(user.role);
+  }, [isAuthenticated, isLoading, user, navigate]);
 
   const loadRequests = async (userRole: string) => {
     try {
-      setLoading(true);
+      setLoadingRequests(true);
       const filterType = userRole === "NGO" ? "made" : "received";
       console.log(`Loading ${filterType} requests for ${userRole} user`);
       
-      const data = await api.getRequests(filterType);
-      setRequests(data || []);
+      const data = await api.requestsApi.getRequests(filterType);
+      console.log("Received requests data:", data);
       
-      if (!data || data.length === 0) {
-        console.log("No requests found, using demo data");
+      if (data && Array.isArray(data) && data.length > 0) {
+        setRequests(data);
+      } else {
+        console.log("No requests found or empty array returned, using demo data");
         
         setRequests([
           {
@@ -115,7 +105,7 @@ const Requests: React.FC = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setLoadingRequests(false);
     }
   };
 
@@ -124,7 +114,7 @@ const Requests: React.FC = () => {
     setShowResponseForm(true);
   };
 
-  if (loading) {
+  if (isLoading || loadingRequests) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-leaf"></div>
